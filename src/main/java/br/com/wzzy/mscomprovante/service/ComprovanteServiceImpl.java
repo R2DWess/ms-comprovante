@@ -15,11 +15,14 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Service
-public class ComprovanteServiceImpl implements ComprovanteService {
+public class ComprovanteServiceImpl implements ComprovanteService{
 
-    @Override
     public String gerar(CompraRequest compra) {
         try {
+            if (compra.getProdutos() == null || compra.getProdutos().isEmpty()) {
+                throw new IllegalArgumentException("A lista de produtos está vazia ou nula.");
+            }
+
             String nomeArquivo = "comprovante-" + System.currentTimeMillis() + ".pdf";
             String caminho = "comprovantes/" + nomeArquivo;
             File file = new File("comprovantes");

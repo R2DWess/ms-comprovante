@@ -20,7 +20,7 @@ public class ComprovanteController {
 
     @PostMapping
     public ResponseEntity<String> gerarComprovante(@RequestBody CompraRequest compra) {
-        comprovanteService.gerar(compra);
-        return ResponseEntity.ok("Comprovante gerado com sucesso e enviado!");
+        String path = comprovanteService.gerar(compra);
+        return ResponseEntity.ok("Comprovante gerado em: " + path);
     }
 }
