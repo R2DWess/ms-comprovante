@@ -2,7 +2,7 @@
   <img src="https://iili.io/3FFO5cF.png" alt="Universidade Católica de Brasília">
 </p>
 
-## PROJETO PESSOAL - MICROSSERVIÇO  📚:
+## PROJETO PESSOAL - MS-COMPROVANTE  📚:
 
 #### 📖 Descrição:
 Microsserviço responsável por **gerar comprovantes de compras realizadas** por clientes. O comprovante é criado em formato PDF contendo as informações dos produtos adquiridos e o e-mail do comprador. Este serviço faz parte de uma arquitetura integrada com os microsserviços `ms-catalogo` (gerenciamento de produtos) e `ms-notificacao` (processamento e envio de notificações).
