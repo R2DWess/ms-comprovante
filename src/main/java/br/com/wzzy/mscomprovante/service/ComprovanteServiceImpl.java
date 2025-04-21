@@ -70,7 +70,6 @@ public class ComprovanteServiceImpl implements ComprovanteService{
             document.add(table);
             document.close();
 
-            // Upload no S3 com metadados
             s3Client.putObject(PutObjectRequest.builder()
                             .bucket(bucketName)
                             .key(nomeArquivo)
@@ -82,7 +81,6 @@ public class ComprovanteServiceImpl implements ComprovanteService{
                             .build(),
                     Paths.get(caminho));
 
-            // Enviar o comprovante por e-mail automaticamente
             emailService.enviarComprovante(compra.getEmailCliente(), caminho);
 
             return "s3://" + bucketName + "/" + nomeArquivo;
