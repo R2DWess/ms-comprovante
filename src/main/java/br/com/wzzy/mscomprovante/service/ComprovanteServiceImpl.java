@@ -7,6 +7,7 @@ import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -16,6 +17,13 @@ import java.time.format.DateTimeFormatter;
 
 @Service
 public class ComprovanteServiceImpl implements ComprovanteService{
+
+    private EmailService emailService;
+
+    @Autowired
+    public ComprovanteServiceImpl(EmailService emailService) {
+        this.emailService = emailService;
+    }
 
     public String gerar(CompraRequest compra) {
         try {
@@ -48,6 +56,8 @@ public class ComprovanteServiceImpl implements ComprovanteService{
 
             document.add(table);
             document.close();
+
+            emailService.enviarComprovante(compra.getEmailCliente(), caminho);
 
             return caminho;
         } catch (Exception e) {
