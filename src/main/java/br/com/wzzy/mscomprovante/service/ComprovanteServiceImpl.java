@@ -66,8 +66,7 @@ public class ComprovanteServiceImpl implements ComprovanteService{
             document.add(table);
             document.close();
 
-            s3Client.putObject(
-                    PutObjectRequest.builder()
+            s3Client.putObject(PutObjectRequest.builder()
                             .bucket(bucketName)
                             .key(nomeArquivo)
                             .contentType("application/pdf")
@@ -76,9 +75,7 @@ public class ComprovanteServiceImpl implements ComprovanteService{
                                     "data-compra", LocalDateTime.now().toString()
                             ))
                             .build(),
-                    Paths.get(caminho)
-            );
-
+                    Paths.get(caminho));
 
             emailService.enviarComprovante(compra.getEmailCliente(), caminho);
 
