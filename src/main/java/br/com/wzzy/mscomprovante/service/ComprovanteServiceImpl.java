@@ -2,14 +2,16 @@ package br.com.wzzy.mscomprovante.service;
 
 import br.com.wzzy.mscomprovante.model.dto.ProdutoDTO;
 import br.com.wzzy.mscomprovante.model.request.CompraRequest;
-import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
+import com.itextpdf.kernel.pdf.PdfDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.File;
@@ -17,21 +19,23 @@ import java.io.FileOutputStream;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class ComprovanteServiceImpl implements ComprovanteService{
 
     private EmailService emailService;
-
     private S3Client s3Client;
 
     private final String bucketName = "wzzy-comprovantes";
 
     @Autowired
-    public ComprovanteServiceImpl(EmailService emailService) {
+    public ComprovanteServiceImpl(EmailService emailService, S3Client s3Client) {
         this.emailService = emailService;
+        this.s3Client = s3Client;
     }
 
     public String gerar(CompraRequest compra) {
@@ -66,6 +70,7 @@ public class ComprovanteServiceImpl implements ComprovanteService{
             document.add(table);
             document.close();
 
+            // Upload no S3 com metadados
             s3Client.putObject(PutObjectRequest.builder()
                             .bucket(bucketName)
                             .key(nomeArquivo)
@@ -77,11 +82,25 @@ public class ComprovanteServiceImpl implements ComprovanteService{
                             .build(),
                     Paths.get(caminho));
 
+            // Enviar o comprovante por e-mail automaticamente
             emailService.enviarComprovante(compra.getEmailCliente(), caminho);
 
             return "s3://" + bucketName + "/" + nomeArquivo;
         } catch (Exception e) {
             throw new RuntimeException("Erro ao gerar PDF", e);
         }
+    }
+
+    @Override
+    public List<String> listarComprovantes() {
+        ListObjectsV2Request request = ListObjectsV2Request.builder()
+                .bucket(bucketName)
+                .build();
+
+        ListObjectsV2Response response = s3Client.listObjectsV2(request);
+
+        return response.contents().stream()
+                .map(s3Object -> "s3://" + bucketName + "/" + s3Object.key())
+                .collect(Collectors.toList());
     }
 }
