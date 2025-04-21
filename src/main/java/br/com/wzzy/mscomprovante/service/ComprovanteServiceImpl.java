@@ -9,16 +9,25 @@ import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class ComprovanteServiceImpl implements ComprovanteService{
 
     private EmailService emailService;
+
+    private S3Client s3Client;
+
+    private final String bucketName = "wzzy-comprovantes";
 
     @Autowired
     public ComprovanteServiceImpl(EmailService emailService) {
@@ -31,12 +40,12 @@ public class ComprovanteServiceImpl implements ComprovanteService{
                 throw new IllegalArgumentException("A lista de produtos está vazia ou nula.");
             }
 
-            String nomeArquivo = "comprovante-" + System.currentTimeMillis() + ".pdf";
+            String nomeArquivo = "comprovante-" + UUID.randomUUID() + ".pdf";
             String caminho = "comprovantes/" + nomeArquivo;
-            File file = new File("comprovantes");
-            if (!file.exists()) file.mkdirs();
+            File file = new File(caminho);
+            file.getParentFile().mkdirs();
 
-            PdfWriter writer = new PdfWriter(new FileOutputStream(caminho));
+            PdfWriter writer = new PdfWriter(new FileOutputStream(file));
             PdfDocument pdf = new PdfDocument(writer);
             Document document = new Document(pdf);
 
@@ -57,9 +66,23 @@ public class ComprovanteServiceImpl implements ComprovanteService{
             document.add(table);
             document.close();
 
+            s3Client.putObject(
+                    PutObjectRequest.builder()
+                            .bucket(bucketName)
+                            .key(nomeArquivo)
+                            .contentType("application/pdf")
+                            .metadata(Map.of(
+                                    "cliente-email", compra.getEmailCliente(),
+                                    "data-compra", LocalDateTime.now().toString()
+                            ))
+                            .build(),
+                    Paths.get(caminho)
+            );
+
+
             emailService.enviarComprovante(compra.getEmailCliente(), caminho);
 
-            return caminho;
+            return "s3://" + bucketName + "/" + nomeArquivo;
         } catch (Exception e) {
             throw new RuntimeException("Erro ao gerar PDF", e);
         }
