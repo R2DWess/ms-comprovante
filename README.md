@@ -14,7 +14,6 @@ Este serviço faz parte de uma arquitetura de microsserviços composta por:
 - [`ms-catalogo`](https://github.com/seu-usuario/ms-catalogo) – consulta e persistência de produtos via Fake Store API + PostgreSQL (RDS)
 - [`ms-pedido`](https://github.com/seu-usuario/ms-pedido) – orquestrador que recebe as solicitações de compra e aciona os demais serviços
 - [`ms-comprovante`](https://github.com/seu-usuario/ms-comprovante) – geração de PDF, envio por e-mail e armazenamento S3
-- [`bff-ecommerce`](https://github.com/seu-usuario/bff-ecommerce) *(em construção)* – camada intermediária entre frontend e backend, responsável por orquestrar as chamadas.
 
 ---
 ## 🔁 Fluxo de Arquitetura utilizada
