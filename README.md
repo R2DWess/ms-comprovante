@@ -5,12 +5,37 @@
 ## PROJETO PESSOAL - MS-COMPROVANTE  📚:
 
 ### 📖 Descrição
-Microsserviço responsável por **gerar comprovantes de compras realizadas** por clientes. O comprovante é criado em formato **PDF** contendo as informações dos produtos adquiridos e o e-mail do comprador. Este serviço faz parte de uma arquitetura integrada com os microsserviços `ms-catalogo` (consulta de produtos) e `ms-notificacao` (processamento da solicitação de compra).
+Microsserviço responsável por **gerar comprovantes de compras realizadas** por clientes. O comprovante é criado em formato **PDF** contendo as informações dos produtos adquiridos e o e-mail do comprador.
 
 Além da geração, o comprovante é:
 
-- **Enviado por e-mail** via AWS SES (Simple Email Service)
-- **Armazenado no AWS S3**, incluindo metadados como e-mail do cliente e data da compra
+Este serviço faz parte de uma arquitetura de microsserviços composta por:
+
+- [`ms-catalogo`](https://github.com/seu-usuario/ms-catalogo) – consulta e persistência de produtos via Fake Store API + PostgreSQL (RDS)
+- [`ms-pedido`](https://github.com/seu-usuario/ms-pedido) – orquestrador que recebe as solicitações de compra e aciona os demais serviços
+- [`ms-comprovante`](https://github.com/seu-usuario/ms-comprovante) – geração de PDF, envio por e-mail e armazenamento S3
+- [`bff-ecommerce`](https://github.com/seu-usuario/bff-ecommerce) *(em construção)* – camada intermediária entre frontend e backend, responsável por orquestrar as chamadas.
+
+---
+## 🔁 Fluxo de Arquitetura utilizada
+
+<img src="docs/arquitetura-fluxo.gif" alt="Fluxo da Arquitetura" width="450">
+
+1. Cliente → `ms-pedido`: Início da requisição de compra.
+2. `ms-pedido` → `ms-catalogo`: Requisição de validação de produtos.
+3. `ms-catalogo` → Fake Store API: Consulta externa dos produtos.
+4. Fake Store API → `ms-catalogo`: Resposta com detalhes dos produtos.
+   5 → 6. `ms-catalogo` → PostgreSQL (via RDS): Persistência dos produtos.
+7. PostgreSQL → `ms-catalogo`: Confirmação da persistência.
+8. `ms-catalogo` → `ms-pedido`: Retorno dos produtos persistidos.
+9. `ms-pedido` → `ms-comprovante`: Geração do comprovante.
+   10 → 11. `ms-comprovante` → iText: Geração do PDF.
+12. `ms-comprovante` → SES: Envio de e-mail com comprovante.
+13. SES → E-mail do cliente: Entrega do e-mail.
+14. `ms-comprovante` → S3: Armazenamento do PDF com metadados.
+15. S3 → `ms-pedido`: Retorno da URI do comprovante.
+16. `ms-pedido` → Cliente: Resposta final ao cliente com link do comprovante.
+---
 
 ### ⚡ Funcionalidades
 1. 🧾 Receber requisição de compra contendo e-mail e lista de produtos;
