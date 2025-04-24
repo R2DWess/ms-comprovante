@@ -32,7 +32,6 @@ public class ComprovanteServiceImpl implements ComprovanteService{
 
     private final String bucketName = "wzzy-comprovantes";
 
-    @Autowired
     public ComprovanteServiceImpl(EmailService emailService, S3Client s3Client) {
         this.emailService = emailService;
         this.s3Client = s3Client;
